@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>屏東印象地圖</title>
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>tailwind.config={theme:{extend:{colors:{primary:'#5FB3B3',secondary:'#F9D56E'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+@font-face {
+font-family: 'NotoSerifTC';
+src: url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap');
+}
+body {
+font-family: 'NotoSerifTC', serif;
+background-color: #9DD3D3;
+}
+.map-container {
+background-color: #9DD3D3;
+position: relative;
+}
+.map-area {
+position: relative;
+width: 100%;
+height: 100%;
+}
+.region-label {
+position: absolute;
+background-color: #F9E7C4;
+border: 2px solid #8B4513;
+color: #5D2E0E;
+font-weight: bold;
+padding: 4px 12px;
+cursor: pointer;
+transition: all 0.3s ease;
+opacity: 0;
+pointer-events: none;
+}
+.region-area {
+position: absolute;
+cursor: pointer;
+}
+.region-area:hover .region-label {
+opacity: 1;
+pointer-events: auto;
+transform: translateY(-5px);
+}
+.region-label:hover {
+transform: scale(1.05);
+box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+.map-title {
+background: linear-gradient(90deg, #F9D56E 50%, #F9D56E 50%);
+border: 3px solid #E67E22;
+color: #5D2E0E;
+font-weight: bold;
+padding: 10px 30px;
+border-radius: 30px;
+box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.modal {
+transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.modal-content {
+background-color: #F9F5EB;
+border: 3px solid #8B4513;
+}
+.map-image {
+filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+.animal-icon {
+position: absolute;
+transition: all 0.3s ease;
+}
+.animal-icon:hover {
+transform: scale(1.1);
+}
+</style>
+</head>
+<body class="min-h-screen">
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+<header class="text-center mb-8">
+<h1 class="map-title text-3xl md:text-4xl mx-auto inline-block">屏東印象地圖</h1>
+</header>
+<div class="map-container relative rounded-lg overflow-hidden p-4 md:p-8 min-h-[600px]">
+<div class="map-area flex justify-center items-center">
+<div class="relative w-full max-w-4xl">
+<img src="https://static.readdy.ai/image/7d92fad21e5390931d5a1e943c47bd2f/acf4455bc447f507dd262222a391afff.png" alt="屏東印象地圖" class="w-full h-auto">
+<!-- 區域標籤 -->
+<div class="region-area absolute bottom-[5%] right-[40%] w-24 h-24">
+<div id="kenting" class="region-label absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">墾丁</div>
+</div>
+<div class="region-area absolute bottom-[30%] right-[25%] w-24 h-24">
+<div id="hengchun" class="region-label absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">恆春</div>
+</div>
+<div class="region-area absolute top-[45%] left-[30%] w-24 h-24">
+<div id="pingtung" class="region-label absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">屏東市</div>
+</div>
+<div class="region-area absolute top-[25%] right-[30%] w-24 h-24">
+<div id="wutai" class="region-label absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">霧台</div>
+</div>
+<div class="region-area absolute bottom-[15%] left-[25%] w-24 h-24">
+<div id="liuqiu" class="region-label absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">小琉球</div>
+</div>
+<!-- 區域標籤 -->
+<div id="kenting" class="region-label absolute bottom-[30%] left-[10%]
+transform -translate-x-1/2 -translate-y-1/2">墾丁</div>
+<div id="hengchun" class="region-label absolute bottom-[30%] right-[25%] transform -translate-x-1/2">恆春</div>
+<div id="pingtung" class="region-label absolute top-[45%] left-[30%] transform -translate-x-1/2">屏東市</div>
+<div id="wutai" class="region-label absolute top-[25%] right-[30%] transform -translate-x-1/2">霧台</div>
+<div id="liuqiu" class="region-label absolute bottom-[35%] left-[25%] transform -translate-x-1/2 -translate-y-1/2">小琉球</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 彈出視窗 -->
+<div id="regionModal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+<div class="modal-content w-full max-w-2xl mx-4 rounded-lg p-6 relative">
+<button id="closeModal" class="absolute top-3 right-3 text-gray-700 hover:text-gray-900">
+<div class="w-8 h-8 flex items-center justify-center">
+<i class="ri-close-line ri-lg"></i>
+</div>
+</button>
+<h2 id="modalTitle" class="text-2xl font-bold text-primary mb-4 border-b-2 border-primary pb-2"></h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<h3 class="text-xl font-bold text-secondary mb-2">特色介紹</h3>
+<p id="modalDescription" class="text-gray-700 mb-4"></p>
+<h3 class="text-xl font-bold text-secondary mb-2">在地美食</h3>
+<ul id="modalFood" class="list-disc list-inside text-gray-700 mb-4"></ul>
+</div>
+<div>
+<h3 class="text-xl font-bold text-secondary mb-2">必訪景點</h3>
+<ul id="modalAttractions" class="list-disc list-inside text-gray-700 mb-4"></ul>
+<h3 class="text-xl font-bold text-secondary mb-2">人文風情</h3>
+<p id="modalCulture" class="text-gray-700"></p>
+</div>
+</div>
+</div>
+</div>
+<script id="mapInteraction">
+document.addEventListener('DOMContentLoaded', function() {
+const regionData = {
+kenting: {
+title: "墾丁",
+description: "墾丁位於台灣最南端，擁有絕美的海岸線和豐富的海洋生態，是台灣最著名的度假勝地之一。全年氣候溫暖，擁有熱帶風情的自然景觀和豐富的海洋活動。",
+attractions: ["墾丁國家公園", "白沙灣", "鵝鑾鼻燈塔", "船帆石", "後壁湖"],
+food: ["海鮮料理", "墾丁大街小吃", "鹿境梅花鹿主題餐廳", "泰式料理"],
+culture: "墾丁融合了原住民、閩南和現代觀光文化，每年的春天會舉辦春天吶喊音樂節，吸引大量遊客前來享受音樂和海灘的結合。"
+},
+hengchun: {
+title: "恆春",
+description: "恆春是台灣最南端的小鎮，保存完好的古城牆是其最大特色。這裡四季如春，氣候宜人，擁有豐富的歷史文化遺產和自然景觀。",
+attractions: ["恆春古城", "出火特別景觀區", "關山日落", "龍磐公園", "四重溪溫泉"],
+food: ["恆春豬腳", "麻花捲", "鹹鴨蛋", "洋蔥餅", "仙人掌冰"],
+culture: "恆春保留了許多傳統民俗活動，如恆春民謠、牽亡歌陣等，每年農曆七月的恆春搶孤也是重要的民俗活動。"
+},
+pingtung: {
+title: "屏東市",
+description: "屏東市是屏東縣的首府，融合了現代與傳統的城市風貌。這裡有熱鬧的商圈，也有寧靜的歷史街區，是屏東縣的政治、經濟和文化中心。",
+attractions: ["屏東縣政府文化處", "屏東觀光夜市", "屏東市區自行車道", "屏東演藝廳", "勝利星村創意園區"],
+food: ["潮州肉圓", "萬丹紅豆", "東港黑鮪魚", "屏東夜市小吃", "客家菜"],
+culture: "屏東市融合了閩南、客家和原住民文化，每年舉辦的黑鮪魚文化觀光季和屏東熱帶農業博覽會都吸引大量遊客。"
+},
+wutai: {
+title: "霧台",
+description: "霧台鄉位於屏東縣北部山區，是魯凱族的傳統領域，以其壯麗的山景和豐富的原住民文化聞名。這裡常年雲霧繚繞，景色如畫。",
+attractions: ["霧台部落", "神山瀑布", "谷川大橋", "多納溫泉", "霧台基督教會"],
+food: ["石板烤肉", "小米糕", "馬蘭頭", "山豬肉", "野菜料理"],
+culture: "霧台保存了豐富的魯凱族文化，包括精美的石板屋、傳統服飾和手工藝品。每年的豐年祭是重要的文化活動，展現了魯凱族的傳統舞蹈和歌謠。"
+},
+liuqiu: {
+title: "小琉球",
+description: "小琉球是台灣本島外最大的珊瑚礁島嶼，擁有豐富的海洋生態和美麗的海灘。這裡是觀賞海龜的絕佳地點，也是熱門的潛水和浮潛勝地。",
+attractions: ["花瓶岩", "美人洞", "蛤板灣", "白沙觀光港", "烏鬼洞"],
+food: ["海鮮燒烤", "海膽料理", "魚丸湯", "炸花枝丸", "仙人掌冰淇淋"],
+culture: "小琉球的居民主要以漁業為生，島上有許多與海洋相關的民間信仰和傳說。每年農曆三月的王爺祭是島上最重要的宗教活動。"
+}
+};
+const modal = document.getElementById('regionModal');
+const closeModal = document.getElementById('closeModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalDescription = document.getElementById('modalDescription');
+const modalAttractions = document.getElementById('modalAttractions');
+const modalFood = document.getElementById('modalFood');
+const modalCulture = document.getElementById('modalCulture');
+// 為每個區域標籤添加點擊事件
+Object.keys(regionData).forEach(region => {
+const element = document.getElementById(region);
+const regionArea = element.closest('.region-area');
+if (element && regionArea) {
+regionArea.addEventListener('click', function() {
+const data = regionData[region];
+// 填充彈出視窗內容
+modalTitle.textContent = data.title;
+modalDescription.textContent = data.description;
+// 清空並填充景點列表
+modalAttractions.innerHTML = '';
+data.attractions.forEach(attraction => {
+const li = document.createElement('li');
+li.textContent = attraction;
+modalAttractions.appendChild(li);
+});
+// 清空並填充美食列表
+modalFood.innerHTML = '';
+data.food.forEach(food => {
+const li = document.createElement('li');
+li.textContent = food;
+modalFood.appendChild(li);
+});
+// 填充人文風情
+modalCulture.textContent = data.culture;
+// 顯示彈出視窗
+modal.classList.remove('hidden');
+modal.classList.add('flex');
+// 添加動畫效果
+setTimeout(() => {
+document.querySelector('.modal-content').style.transform = 'scale(1)';
+document.querySelector('.modal-content').style.opacity = '1';
+}, 10);
+});
+}
+});
+// 關閉彈出視窗
+closeModal.addEventListener('click', function() {
+document.querySelector('.modal-content').style.transform = 'scale(0.9)';
+document.querySelector('.modal-content').style.opacity = '0';
+setTimeout(() => {
+modal.classList.add('hidden');
+modal.classList.remove('flex');
+}, 300);
+});
+// 點擊彈出視窗外部關閉
+modal.addEventListener('click', function(e) {
+if (e.target === modal) {
+closeModal.click();
+}
+});
+// 添加動物圖示動畫效果
+const animalIcons = document.querySelectorAll('.animal-icon');
+animalIcons.forEach(icon => {
+setInterval(() => {
+icon.style.transform = 'scale(1.05)';
+setTimeout(() => {
+icon.style.transform = 'scale(1)';
+}, 500);
+}, 3000);
+});
+});
+</script>
+</body>
+</html>
